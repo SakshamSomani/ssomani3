@@ -1,0 +1,1099 @@
+---
+title: "HW5_Sol"
+author: "Safanah, Saksham, and Amir"
+date: "4/20/2022"
+output: html_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Uploading the data
+
+# Raw data
+Raw_Data <- read.csv("C:/Users/ssoman3/Desktop/UIC Spring 2022/Data Mining/Assignment 5/updatedrmarkdown/Raw_Data.csv")
+
+# Samples data
+
+Q3Data <- read.csv("C:/Users/ssoman3/Desktop/UIC Spring 2022/Data Mining/Assignment 5/updatedrmarkdown/Q3Data.csv")
+
+```
+
+**The concern here is the samples data more than the order data, because for orders they were already placed by customers, but for samples we are aiming to predict conversion and to cluster the customers**
+
+
+```{r, message=FALSE, warning=FALSE}
+# uploading required libraries
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(rpart)
+library(ISLR)
+library(caret)
+library(randomForest)
+library(glm2)
+library(skimr)
+library(glm2)
+library(nnet)
+library(JOUSBoost)
+library(ROSE)
+library(factoextra)
+library(gridExtra)
+library(spaa)
+```
+
+### 1) Data Visualization (Explatory Data Analsysis)
+
+**- There are 18955 observations in the Raw dataset, and 5820 for the samples only dataset**
+
+**- Target variable = conversion , with two values 0 "No conversion", 1 "conversion"**
+
+```{r}
+dim(Raw_Data)
+dim(Q3Data)
+colnames(Raw_Data)
+colnames(Q3Data)
+unique(Q3Data$Order.Conversion)
+```
+
+**There are no missing data as shown in by the function below in both raw data and samples only data**
+```{r}
+colSums(is.na(Raw_Data))
+colSums(is.na(Q3Data))
+```
+
+**- Checking the min, max, mean of each variable**
+```{r}
+summary(Raw_Data)
+summary(Q3Data)
+```
+
+**As we mentioned that the data we are working with is the (Samples Only) Data, hence it is important to check the indepdent variables types**
+
+```{r}
+str(Q3Data)
+```
+
+**We can see that some of the variables types need to be changed. Hence, the following code changes their types to the correct ones**
+
+```{r}
+Q3Data$CountryName <- as.factor(Q3Data$CountryName)
+Q3Data$ITEM_NAME <- as.factor(Q3Data$ITEM_NAME)
+Q3Data$ShapeName<- as.factor(Q3Data$ShapeName)
+
+
+str(Q3Data) # checking the types of the variables after the adjustment
+```
+
+*We are predicting a categorical target variables which is the (Order.Conversion). So the type of models we will be building are the classification models*
+
+**Showing the mean and the standard devation of the variables*
+
+```{r}
+skim(Q3Data)
+```
+
+
+*Determining the proportion of conversion and non conversion (Target Variable)*
+
+```{r}
+Conversion_Cases <- Q3Data %>% select(Order.Conversion) %>% filter(Order.Conversion==1)
+p1 <- nrow(Conversion_Cases)/length(Q3Data$Order.Conversion)
+
+non_Conversion_Cases <- Q3Data %>% select(Order.Conversion) %>% filter(Order.Conversion==0)
+p2 <- nrow(non_Conversion_Cases)/length(Q3Data$Order.Conversion)
+
+p3 <- nrow(Conversion_Cases)/nrow(non_Conversion_Cases)
+```
+
+1- Proportion of conversion samples in the entire dataset = `r round(p1,2)*100`%
+
+2- Proportion of non-conversion samples in the entire dataset = `r round(p2,2)*100`%
+
+3- Ratio of conversion samples to non-conversion samples in the entire dataset = `r round(p3,2)`
+
+
+
+**- Graphical representation for the total# of conversion and non-conversion samples**
+
+```{r}
+data <- Q3Data %>% mutate(Target=ifelse(Order.Conversion==0,"Non_Conversion","Conversion"))
+
+fre_Output<- data %>% ggplot(aes(x=Target))+geom_bar(fill="grey",col="red", size=1)+theme_bw()+labs(title="Output Frequencies", x="Conversion/Non_Conversion", y="Freq.")+
+  theme(text=element_text(size=14))+ theme(plot.title = element_text(hjust=0.5))+scale_y_continuous(breaks=seq(0,6000,by=500))
+
+fre_Output
+```
+
+**Graphical Representaion for the input variables**
+
+
+Categorical variables: country name, item name, shape name. (GREEN Color)
+
+
+Numerical variables: areaFt. and QtyRequired (BLUE Color)
+
+
+Remaining variables: 0 & 1 (binary, int).
+
+
+
+```{r}
+bar1 <- Q3Data %>% ggplot(aes(x=CountryName))+geom_bar(col="black", fill="chartreuse4")+theme_bw()+labs(title="Country_Name Freq.", x="Country Name", y="Freq.")+
+  theme(text=element_text(size=11))+ theme(plot.title = element_text(hjust=0.5))+scale_y_continuous(breaks = seq(0,4000,by=200))
+
+bar2 <- Q3Data %>% ggplot(aes(x=ITEM_NAME))+geom_bar(col="black", fill="chartreuse4")+theme_bw()+labs(title="Item_Name Freq.", x="Item Name", y="Freq.")+
+  theme(text=element_text(size=11))+ theme(plot.title = element_text(hjust=0.5))+scale_y_continuous(breaks = seq(0,4000,by=200))
+
+
+bar3 <- Q3Data %>% ggplot(aes(x=ShapeName))+geom_bar(col="black", fill="chartreuse4")+theme_bw()+labs(title="Shape_Name Freq.", x="Shape Name", y="Freq.")+
+  theme(text=element_text(size=11))+ theme(plot.title = element_text(hjust=0.5))+scale_y_continuous(breaks = seq(0,6000,by=400))
+
+num1 <- Q3Data %>% ggplot(aes(x=AreaFt))+geom_histogram(binwidth=10,col="black", fill="cadetblue2")+theme_bw()+labs(title="Area (Ft.) Freq.", x="Area (Ft.)", y="Freq.")+
+  theme(text=element_text(size=11))+ theme(plot.title = element_text(hjust=0.5))+scale_y_continuous(seq(0,6000,by=500))
+
+num2 <- Q3Data %>% ggplot(aes(x=QtyRequired))+geom_histogram(binwidth=3,col="black", fill="cadetblue2")+theme_bw()+labs(title="Quantity Freq.", x="Quantity Required", y="Freq.")+
+  theme(text=element_text(size=11))+ theme(plot.title = element_text(hjust=0.5))+scale_y_continuous(seq(0,6000,by=200))
+
+
+
+
+
+bar1
+bar2
+bar3
+num1
+num2
+```
+
+
+**Correlation coffiecinet of Total Area variable to the target variable (Order.Conversion)**
+
+```{r}
+
+#Area Ft.
+cor(Q3Data$AreaFt, Q3Data$Order.Conversion) # =0.3357, positive weak correlation with the target variable. < 0.5
+
+# Qty Required
+cor(Q3Data$QtyRequired, Q3Data$Order.Conversion) # =0.06, positive weak correlation
+```
+
+```{r message=FALSE, warning=FALSE}
+
+# graphical representation for the correlation of the numerical variables with the target variable
+
+cor_matrix <- Q3Data %>% select(AreaFt, QtyRequired, Order.Conversion) %>%
+  cor()
+
+corrplot(cor_matrix, method="circle", size=5, addCoef.col = 1)
+
+```
+
+
+**Scatter plot for all numericals variable**
+
+```{r}
+Q3Data %>% select(AreaFt, QtyRequired) %>% plot()
+```
+
+
+
+*Chi-square test for the categorical variables to determine if they have correlation (association) with the target variable*
+
+Testing the significance of each categorical variable by chi-square test for the following hypothesis:
+
+H0: there is no association between the input variable and Order.Conversion
+
+H1: there is an association between the input variable and Order.Conversion
+
+
+```{r , message=FALSE, warning=FALSE}
+
+table1 <- table(Q3Data$CountryName, Q3Data$Order.Conversion)
+c1 <- chisq.test(table1, correct=FALSE)$expected
+pv1 <- chisq.test(table1, correct=FALSE)$p.value 
+
+
+table2 <- table(Q3Data$ITEM_NAME, Q3Data$Order.Conversion)
+c2 <- chisq.test(table2, correct=FALSE)$expected
+pv2 <- chisq.test(table2, correct=FALSE)$p.value
+
+table3 <- table(Q3Data$ShapeName, Q3Data$Order.Conversion)
+c3 <- chisq.test(table3, correct=FALSE)$expected
+pv3 <- chisq.test(table3, correct=FALSE)$p.value
+
+```
+
+
+
+1- Variable(Country Name) P-value = `r pv1`, <0.05 reject null hypothesis so there is an association
+
+2- Variable(Item Name) P-value = `r pv2`, <0.05 reject null hypothesis so there is an association
+
+3- Variable(Shape Name) P-value = `r pv3`, <0.05 reject null hypothesis so there is an association
+
+
+
+### 2) Kinds of algorithms to use for this problem
+
+We have our target variable (Conversion Vs. non_conversion) have values 0 or 1, which can be translated into yes and no. This means that our output is categorical. Thus, for this data we are using the classification algorithms [decision tree, random forest, Multi logistic regression, nueral network]. We will select the best model based on the F-Score resulted from the confusion matrix. The reason for selecting the F.Score as the determant measure is because both precision and recall are important in this case. the false positive and false negative are both sensative for the case of conversion/non.conversion, thus they both are taken into consideration. 
+
+After the classification models with this given output variable. Clustering method will be implemented in order to cluser the customers when the output variable is unknown. 
+
+### 3) Classification Modeling
+
+For this question, we have the target variable (order.conversion), so we are performing all classification models that we learned. (decision tree, random forest, logistic regression, nueral network, and ada boost)
+
+For assessing each model, we used the Fscore to judge which model gives the best result. We chose the Fscore because both the precison and recall are important. 
+
+
+
+**UNBALANCED DATA**
+
+*1/ Decision Tree*
+
+```{r}
+
+Q3Data$Order.Conversion <- as.factor(Q3Data$Order.Conversion) # output variable as a factor.
+
+DATA <- Q3Data
+
+# Confusion matrix evaluation.
+EvaluationMeasure <- function(CM) 
+{
+  
+  TP <- CM[1,1]
+  FN <- CM[1,2]
+  FP <- CM[2,1]
+  TN <- CM[2,2]
+  
+  Percision <- (TP)/(TP+FP)
+  Recall <- (TP)/(TP+FN)
+  Fscore <- (2*Recall*Percision)/(Recall + Percision)
+  Measures <- cbind(Fscore)
+  
+  return(Measures)
+}
+
+set.seed(134)
+# 2 variables were dropped because of its high correlation. (others & Square)
+# K-fold cross-validation 
+K <- 5
+indx <- sample(K,size=nrow(DATA), replace=TRUE, prob=c(0.1, 0.1, 0.1, 0.1, 0.1)) 
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted + Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+
+treetype <- c("gini", "information")
+CP <- c(-1, 0, 0.01, 0.05, 0.1)
+MB <- c(0, 5, 10, 20, 50)
+MS <- c(0, 10, 20, 50, 100)
+
+err <- c()
+for (i in 1:K)
+{
+  Error <- c()
+  training <- DATA[indx != i,]
+  testing <- DATA[indx == i,]
+  idx <- sample(2,size=nrow(training), replace=TRUE, prob=c(.8, .2)) 
+  train <- training[idx==1,]
+  validation <- training[idx==2,]
+  for (tt in 1:length(treetype))
+  {
+    for (cp in 1:length(CP))
+    {
+      for (mb in 1:length(MB))
+      {
+        for (ms in 1:length(MS))
+        {
+          mytree <- rpart(MyFormula, data=train, parms = list(split=treetype[tt]), control=rpart.control(minsplit = MS[ms], minbucket = MB[mb], cp=CP[cp]))
+          pred <- predict(mytree, newdata=validation, type="class")
+          CM <- table(validation$Order.Conversion, pred,  dnn=c("Actual", "Predicted"))
+          Measures <- as.data.frame(EvaluationMeasure(CM))
+          nv <- c(treetype[tt], MS[ms], MB[mb], CP[cp], Measures$Fscore)
+          #print(nv)
+          Error <- rbind(Error, nv)
+        }
+      }
+    }
+  }
+  #print(i)
+  colnames(Error) <- c("treetype", "MS", "MB","CP","Fscore")
+  Error <- as.data.frame(Error)
+  Error1 <- Error %>% arrange(desc(Fscore))
+  #print(Error1[1,])
+  mytree1 <- rpart(MyFormula, data=training, parms = list(split=Error1[1, 1]), control=rpart.control(minsplit = Error1[1, 2], minbucket = Error1[1, 3], cp=Error1[1, 4]))
+  predict_test<- predict(mytree1, newdata=testing, type="class")
+  CM <- table(testing$Order.Conversion, predict_test,  dnn=c("Actual", "Predicted"))
+  Measures <- as.data.frame(EvaluationMeasure(CM))
+  err <- cbind(err, Measures$Fscore)
+}
+print(mean((err)))
+print(sd(err))
+```
+
+**So the Fscore for decsision tree = 0.95**
+
+*2/ Random Forest*
+
+```{r,  message=FALSE, warning=FALSE}
+set.seed(134)
+# K-fold cross-validation 
+
+K <- 5
+indx <- sample(K,size=nrow(DATA), replace=TRUE, prob=c(0.1, 0.1, 0.1, 0.1, 0.1)) 
+
+
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+
+NoTree <- c(10, 50, 100, 150)
+Mtry <- c(7, 10, 25, 5)
+
+err <- c()
+for (i in 1:K)
+{
+  Error <- c()
+  for (j in 1:length(NoTree))
+  {
+    for (c in 1:length(Mtry))
+    {
+      RF <- randomForest(MyFormula, data=DATA, ntree = NoTree[j], mtry = Mtry[c], proximity = TRUE, importance=TRUE)
+      CM <- table(DATA$Order.Conversion, RF$predicted,  dnn=c("Actual", "Predicted"))
+      Measures <- as.data.frame(EvaluationMeasure(CM))
+      nv <- c(NoTree[j], Mtry[c], Measures$Fscore)
+      Error <- rbind(Error, nv)
+    }
+  }
+  colnames(Error) <- c("NoTree", "Mtry","Fscore")
+  Error <- as.data.frame(Error)
+  Error1 <- Error %>% arrange(desc(Fscore))
+  #print(Error1[1,])
+  RF1 <- randomForest(MyFormula, data=DATA, ntree = Error1[1,1], mtry = Error1[1,2])
+  CM <- table(DATA$Order.Conversion, RF1$predicted,  dnn=c("Actual", "Predicted"))
+  Measures <- as.data.frame(EvaluationMeasure(CM))
+  err <- cbind(err, Measures$Fscore)
+}
+
+print(mean((err)))
+print(sd(err))
+```
+
+**So the Fscore for Random Forest = 0.95**
+
+*3/ Logistic Regression*
+
+```{r}
+
+set.seed(256)
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+indx <- sample(2,size=nrow(DATA), replace=TRUE, prob=c(0.8, 0.2))
+train <- DATA[indx==1,]
+test <- DATA[indx==2,]
+MNL <- glm(MyFormula, data=train, family = "binomial")
+summary(MNL)
+PRED <- predict(MNL, newdata=test, type="response")
+
+class <- ifelse(PRED >= 0.5, "1","0")
+class
+CM <- table(test$Order.Conversion, class,  dnn=c("Actual", "Predicted"))
+Measures <- as.data.frame(EvaluationMeasure(CM))
+print(Measures$Fscore)
+```
+
+**So the Fscore for Logisitc regression = 0.92**
+
+*4/ Nueral Network*
+
+
+```{r}
+
+# first normalizing numerical variables. 
+
+myscale <- function(x)
+{
+  (x-min(x))/(max(x)-min(x))
+}
+
+
+NN_DATA <- DATA %>% mutate_if(is.numeric, myscale)
+summary(NN_DATA) # showing normalized data
+
+set.seed(1234)
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+
+
+
+# corss validation for pruning the parameter (size & decay). 
+K <- 5
+indx <- sample(K,size=nrow(NN_DATA), replace=TRUE, prob=c(0.1, 0.1, 0.1, 0.1, 0.1)) 
+
+
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+
+SIZE <- c(9, 11, 13, 15, 17)
+DECAY <- c(0, 0.01, 0.05, 0.1, 0.5)
+
+
+err <- c()
+for (k in 1:K)
+{
+  Error <- c()
+  training <- NN_DATA[indx != i,]
+  testing <- NN_DATA[indx == i,]
+  idx <- sample(2,size=nrow(training), replace=TRUE, prob=c(.8, .2)) 
+  train <- training[idx==1,]
+  validation <- training[idx==2,]
+  for (i in 1:length(SIZE))
+  { 
+    for (j in 1:length(DECAY))
+         {
+           myNet <- nnet(MyFormula, data=train, linout = F, size = SIZE[i], decay = DECAY[j], maxit = 1000)
+           pred <- predict(myNet, newdata=validation, type="class")
+           CM <- table(validation$Order.Conversion, pred,  dnn=c("Actual", "Predicted"))
+           Measures <- as.data.frame(EvaluationMeasure(CM))
+           nv <- c(SIZE[i], DECAY[j], Measures$Fscore)
+           #print(nv)
+           Error <- rbind(Error, nv)
+           }
+  }
+ # print(i)
+  colnames(Error) <- c("SIZE", "DECAY","Fscore")
+  Error <- as.data.frame(Error)
+  Error1 <- Error %>% arrange(desc(Fscore))
+  #print(Error1[1,])
+  myNet1 <- nnet(MyFormula, data=training, linout = F, size = Error1[1, 1], decay = Error1[1, 2], maxit = 1000)
+  predict_test<- predict(myNet1, newdata=testing, type="class")
+  CM <- table(testing$Order.Conversion, predict_test,  dnn=c("Actual", "Predicted"))
+  Measures <- as.data.frame(EvaluationMeasure(CM))
+  err <- cbind(err, Measures$Fscore)
+  
+}
+
+print(mean((err)))
+print(sd(err))
+```
+
+
+**So the Fscore for nueral network =  0.94**
+
+
+*5/ Ada Boost*
+
+```{r}
+
+K <- 5
+indx <- sample(K,size=nrow(NN_DATA), replace=TRUE, prob=c(0.1, 0.1, 0.1, 0.1, 0.1)) 
+NN_DATA$Order.Conversion<-ifelse(NN_DATA$Order.Conversion==1,1,-1)
+
+TD <- c(3, 5, 7, 9, 11)
+NR <- c(10, 50, 100, 200, 500)
+
+
+err <- c()
+for (k in 1:K)
+{
+  Error <- c()
+  training <- NN_DATA[indx != i,]
+  testing <- NN_DATA[indx == i,]
+  idx <- sample(2,size=nrow(training), replace=TRUE, prob=c(.8, .2)) 
+  train <- training[idx==1,]
+  validation <- training[idx==2,]
+  
+  trainingY <- training$Order.Conversion
+  trainingX <- subset(training, select = -c(Order.Conversion))
+  
+  testingY <- testing$Order.Conversion
+  testingX <- subset(testing, select = -c(Order.Conversion))
+  
+  trainY <- train$Order.Conversion
+  trainX <- subset(train, select = -c(Order.Conversion))
+  
+  validationY <- validation$Order.Conversion
+  validationX <- subset(validation, select = -c(Order.Conversion))
+  
+  for (i in 1:length(TD))
+  { 
+    for (j in 1:length(NR))
+    {
+      ada = adaboost(data.matrix(trainX), trainY, tree_depth = TD[i], n_rounds = NR[j])
+      pred <- predict(ada, data.matrix(validationX))
+      CM <- table(validation$Order.Conversion, pred,  dnn=c("Actual", "Predicted"))
+      Measures <- as.data.frame(EvaluationMeasure(CM))
+      nv <- c(TD[i], NR[j], Measures$Fscore)
+      #print(nv)
+      Error <- rbind(Error, nv)
+    }
+  }
+  #print(i)
+  colnames(Error) <- c("tree_depth", "n_rounds","Fscore")
+  Error <- as.data.frame(Error)
+  Error1 <- Error %>% arrange(desc(Fscore))
+  #print(Error1[1,])
+  ada1 = adaboost(data.matrix(trainingX), trainingY, tree_depth = Error1[1, 1], n_rounds = Error1[1, 2])
+  pred <- predict(ada, data.matrix(validationX))
+
+  predict_test<- predict(ada, data.matrix(testingX))
+  
+  CM <- table(testing$Order.Conversion, predict_test,  dnn=c("Actual", "Predicted"))
+  Measures <- as.data.frame(EvaluationMeasure(CM))
+  err <- cbind(err, Measures$Fscore)
+  
+}
+
+print(mean((err)))
+print(sd(err))
+```
+
+
+
+**So the Fscore for Ada boost =  0.94**
+
+*We conclude that either decision tree or random forest gives the best modeling because of the highest Fscore of 0.95 for UNBALANCED DATA*
+
+
+**BALANCED DATA**
+
+
+```{r}
+summary(Q3Data$Order.Conversion) # unbalanced for each class.
+
+
+library(ROSE)
+
+DATA <- ovun.sample(Order.Conversion~., data=Q3Data, method="both", N=6500)$data
+summary(DATA$Order.Conversion)
+
+```
+
+
+*1/ Decision Tree*
+
+
+```{r}
+set.seed(134)
+
+
+# K-fold cross-validation 
+
+K <- 5
+indx <- sample(K,size=nrow(DATA), replace=TRUE, prob=c(0.1, 0.1, 0.1, 0.1, 0.1)) 
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+
+treetype <- c("gini", "information")
+CP <- c(-1, 0, 0.01, 0.05, 0.1)
+MB <- c(0, 5, 10, 20, 50)
+MS <- c(0, 10, 20, 50, 100)
+
+err <- c()
+for (i in 1:K)
+{
+  Error <- c()
+  training <- DATA[indx != i,]
+  testing <- DATA[indx == i,]
+  idx <- sample(2,size=nrow(training), replace=TRUE, prob=c(.8, .2)) 
+  train <- training[idx==1,]
+  validation <- training[idx==2,]
+  for (tt in 1:length(treetype))
+  {
+    for (cp in 1:length(CP))
+    {
+      for (mb in 1:length(MB))
+      {
+        for (ms in 1:length(MS))
+        {
+          mytree <- rpart(MyFormula, data=train, parms = list(split=treetype[tt]), control=rpart.control(minsplit = MS[ms], minbucket = MB[mb], cp=CP[cp]))
+          pred <- predict(mytree, newdata=validation, type="class")
+          CM <- table(validation$Order.Conversion, pred,  dnn=c("Actual", "Predicted"))
+          Measures <- as.data.frame(EvaluationMeasure(CM))
+          nv <- c(treetype[tt], MS[ms], MB[mb], CP[cp], Measures$Fscore)
+          #print(nv)
+          Error <- rbind(Error, nv)
+        }
+      }
+    }
+  }
+  #print(i)
+  colnames(Error) <- c("treetype", "MS", "MB","CP","Fscore")
+  Error <- as.data.frame(Error)
+  Error1 <- Error %>% arrange(desc(Fscore))
+  #print(Error1[1,])
+  mytree1 <- rpart(MyFormula, data=training, parms = list(split=Error1[1, 1]), control=rpart.control(minsplit = Error1[1, 2], minbucket = Error1[1, 3], cp=Error1[1, 4]))
+  predict_test<- predict(mytree1, newdata=testing, type="class")
+  CM <- table(testing$Order.Conversion, predict_test,  dnn=c("Actual", "Predicted"))
+  Measures <- as.data.frame(EvaluationMeasure(CM))
+  err <- cbind(err, Measures$Fscore)
+}
+
+print(mean((err)))
+print(sd(err))
+```
+
+*So the Fscore for Decision tree = 0.87*
+
+
+*2/ Random Forest*
+
+```{r, message=FALSE, warning=FALSE}
+
+set.seed(134)
+# K-fold cross-validation 
+K <- 5
+indx <- sample(K,size=nrow(DATA), replace=TRUE, prob=c(0.1, 0.1, 0.1, 0.1, 0.1)) 
+
+
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+
+
+NoTree <- c(10, 50, 100, 150)
+Mtry <- c(7, 10, 25, 5)
+
+err <- c()
+for (i in 1:K)
+{
+  Error <- c()
+  for (j in 1:length(NoTree))
+  {
+    for (c in 1:length(Mtry))
+    {
+      RF <- randomForest(MyFormula, data=DATA, ntree = NoTree[j], mtry = Mtry[c], proximity = TRUE, importance=TRUE)
+      CM <- table(DATA$Order.Conversion, RF$predicted,  dnn=c("Actual", "Predicted"))
+      Measures <- as.data.frame(EvaluationMeasure(CM))
+      nv <- c(NoTree[j], Mtry[c], Measures$Fscore)
+      Error <- rbind(Error, nv)
+    }
+  }
+  colnames(Error) <- c("NoTree", "Mtry","Fscore")
+  Error <- as.data.frame(Error)
+  Error1 <- Error %>% arrange(desc(Fscore))
+  print(Error1[1,])
+  RF1 <- randomForest(MyFormula, data=DATA, ntree = Error1[1,1], mtry = Error1[1,2])
+  CM <- table(DATA$Order.Conversion, RF1$predicted,  dnn=c("Actual", "Predicted"))
+  Measures <- as.data.frame(EvaluationMeasure(CM))
+  err <- cbind(err, Measures$Fscore)
+}
+
+print(mean((err)))
+print(sd(err))
+```
+
+*So the Fscore for random forest =  0.88*
+
+
+*3/ Logistic Regression*
+
+```{r}
+
+set.seed(256)
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+indx <- sample(2,size=nrow(DATA), replace=TRUE, prob=c(0.8, 0.2))
+train <- DATA[indx==1,]
+test <- DATA[indx==2,]
+MNL <- glm(MyFormula, data=train, family = "binomial")
+summary(MNL)
+PRED <- predict(MNL, newdata=test, type="response")
+
+class <- ifelse(PRED >= 0.5, "1","0")
+class
+CM <- table(test$Order.Conversion, class,  dnn=c("Actual", "Predicted"))
+Measures <- as.data.frame(EvaluationMeasure(CM))
+print(Measures$Fscore)
+```
+
+*So the Fscore for logisitc regression =  0.83*
+
+
+*4/ Nueral Network*
+
+```{r}
+myscale <- function(x)
+{
+  (x-min(x)/max(x)-min(x))
+}
+
+library(dplyr)
+
+# Normalizing the data for nueral network
+NN_DATA <- DATA %>% mutate_if(is.numeric, myscale)
+
+
+set.seed(1234)
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+
+# corss validation for pruning the parameter (size & decay). 
+
+K <- 5
+indx <- sample(K,size=nrow(NN_DATA), replace=TRUE, prob=c(0.1, 0.1, 0.1, 0.1, 0.1)) 
+
+
+
+MyFormula <- Order.Conversion~ USA + UK + Italy + Belgium + Romania + Australia + India + QtyRequired + Hand.Tufted+
+  Durry + Double.Back + Hand.Woven + Knotted + Jacquard + Handloom + REC + Round + AreaFt
+
+SIZE <- c(9, 11, 13, 15, 17)
+DECAY <- c(0, 0.01, 0.05, 0.1, 0.5)
+
+
+err <- c()
+for (k in 1:K)
+{
+  Error <- c()
+  training <- NN_DATA[indx != i,]
+  testing <- NN_DATA[indx == i,]
+  idx <- sample(2,size=nrow(training), replace=TRUE, prob=c(.8, .2)) 
+  train <- training[idx==1,]
+  validation <- training[idx==2,]
+  for (i in 1:length(SIZE))
+  { 
+    for (j in 1:length(DECAY))
+    {
+      myNet <- nnet(MyFormula, data=train, linout = F, size = SIZE[i], decay = DECAY[j], maxit = 1000)
+      pred <- predict(myNet, newdata=validation, type="class")
+      CM <- table(validation$Order.Conversion, pred,  dnn=c("Actual", "Predicted"))
+      #CM <- confusionMatrix(data=as.factor(validation$Order.Conversion), reference=as.factor(pred))
+      Measures <- as.data.frame(EvaluationMeasure(CM))
+      nv <- c(SIZE[i], DECAY[j], Measures$Fscore)
+      print(nv)
+      Error <- rbind(Error, nv)
+    }
+  }
+  #print(i)
+  colnames(Error) <- c("SIZE", "DECAY","Fscore")
+  Error <- as.data.frame(Error)
+  Error1 <- Error %>% arrange(desc(Fscore))
+  print(Error1[1,])
+  myNet1 <- nnet(MyFormula, data=training, linout = F, size = Error1[1, 1], decay = Error1[1, 2], maxit = 1000)
+  predict_test<- predict(myNet1, newdata=testing, type="class")
+  CM <- table(testing$Order.Conversion, predict_test,  dnn=c("Actual", "Predicted"))
+  Measures <- as.data.frame(EvaluationMeasure(CM))
+  err <- cbind(err, Measures$Fscore)
+  
+}
+
+print(mean((err)))
+print(sd(err))
+```
+
+*So the Fscore for nueral network =  0.86*
+
+
+*5/Ada Boost*
+
+
+```{r}
+
+set.seed(1234)
+K <- 5
+indx <- sample(K,size=nrow(NN_DATA), replace=TRUE, prob=c(0.1, 0.1, 0.1, 0.1, 0.1)) 
+
+NN_DATA$Order.Conversion<-ifelse(NN_DATA$Order.Conversion==1,1,-1)
+
+
+TD <- c(3, 5, 7, 9, 11)
+NR <- c(10, 50, 100, 200, 500)
+
+
+err <- c()
+for (k in 1:K)
+{
+  Error <- c()
+  training <- NN_DATA[indx != i,]
+  testing <- NN_DATA[indx == i,]
+  idx <- sample(2,size=nrow(training), replace=TRUE, prob=c(.8, .2)) 
+  train <- training[idx==1,]
+  validation <- training[idx==2,]
+  
+  trainingY <- training$Order.Conversion
+  trainingX <- subset(training, select = -c(Order.Conversion))
+  
+  testingY <- testing$Order.Conversion
+  testingX <- subset(testing, select = -c(Order.Conversion))
+  
+  trainY <- train$Order.Conversion
+  trainX <- subset(train, select = -c(Order.Conversion))
+  
+  validationY <- validation$Order.Conversion
+  validationX <- subset(validation, select = -c(Order.Conversion))
+  
+  for (i in 1:length(TD))
+  { 
+    for (j in 1:length(NR))
+    {
+      ada = adaboost(data.matrix(trainX), trainY, tree_depth = TD[i], n_rounds = NR[j])
+      pred <- predict(ada, data.matrix(validationX))
+      CM <- table(validation$Order.Conversion, pred,  dnn=c("Actual", "Predicted"))
+      Measures <- as.data.frame(EvaluationMeasure(CM))
+      nv <- c(TD[i], NR[j], Measures$Fscore)
+      print(nv)
+      Error <- rbind(Error, nv)
+    }
+  }
+  print(i)
+  colnames(Error) <- c("tree_depth", "n_rounds","Fscore")
+  Error <- as.data.frame(Error)
+  Error1 <- Error %>% arrange(desc(Fscore))
+  print(Error1[1,])
+  ada1 = adaboost(data.matrix(trainingX), trainingY, tree_depth = Error1[1, 1], n_rounds = Error1[1, 2])
+  pred <- predict(ada, data.matrix(validationX))
+  
+  predict_test<- predict(ada, data.matrix(testingX))
+  
+  CM <- table(testing$Order.Conversion, predict_test,  dnn=c("Actual", "Predicted"))
+  Measures <- as.data.frame(EvaluationMeasure(CM))
+  err <- cbind(err, Measures$Fscore)
+  
+}
+
+print(mean((err)))
+print(sd(err))
+```
+
+*So the Fscore for Ada boost = 0.84*
+
+
+
+*We conclude that Random Forest gives the best modeling because of the highest Fscore of 0.88 for BALANCED DATA*
+
+
+
+### 4) Data strategy for building customer segmentation using clustering. 
+
+
+
+
+
+
+### 5) Clustering algorithms that can be used for Champo Carpet
+
+
+
+
+### 6) Customer segmentation using K-means
+
+```{r, message=FALSE, warning=FALSE}
+
+clustering_data <- read.csv("C:/Users/ssoman3/Desktop/UIC Spring 2022/Data Mining/Assignment 5/updatedrmarkdown/clustering_data.csv")
+df <- clustering_data %>% mutate_if(is.numeric, myscale)
+
+attach(df)
+
+cor_matrix <- df %>% select(Sum.of.QtyRequired, Sum.of.TotalArea, Sum.of.Amount, DURRY, HANDLOOM, DOUBLE.BACK,JACQUARD, HAND.TUFTED, HAND.WOVEN, KNOTTED, GUN.TUFTED, Powerloom.Jacquard, INDO.TEBETAN) %>% cor()
+
+corrplot(cor_matrix, method="circle", addCoef.col = 1)
+
+# correlation tests (p-value) to see which variables are significnat. 
+
+cor.test(df$Sum.of.QtyRequired, df$Sum.of.TotalArea, method="pearson") # Pvalue = 0.36 not sig.
+cor.test(df$Sum.of.QtyRequired, df$Sum.of.Amount, method="pearson") #0.01076 sig. 
+cor.test(df$Sum.of.QtyRequired, df$DURRY, method="pearson") # 0 sig. 
+cor.test(df$Sum.of.QtyRequired, df$HANDLOOM, method="pearson") # 0 sig. 
+cor.test(df$Sum.of.QtyRequired, df$DOUBLE.BACK, method="pearson") # 0.45 not sig.
+cor.test(df$Sum.of.QtyRequired, df$JACQUARD, method="pearson") #0.004 sig.
+cor.test(df$Sum.of.QtyRequired, df$HAND.TUFTED, method="pearson") #0 sig. 
+cor.test(df$Sum.of.QtyRequired, df$HAND.WOVEN, method="pearson") #0.003 sig.
+cor.test(df$Sum.of.QtyRequired, df$KNOTTED, method="pearson") #0.26 not sig.
+cor.test(df$Sum.of.QtyRequired, df$GUN.TUFTED, method="pearson") #0.94 not sig. 
+cor.test(df$Sum.of.QtyRequired, df$Powerloom.Jacquard, method="pearson") #0 sig. 
+cor.test(df$Sum.of.QtyRequired, df$INDO.TEBETAN, method="pearson") #0.86 not sig.
+
+cor.test(df$Sum.of.TotalArea, df$Sum.of.Amount, method="pearson") #0.02 sig.
+cor.test(df$Sum.of.TotalArea, df$DURRY, method="pearson") # 0.74 not sig
+cor.test(df$Sum.of.TotalArea, df$HANDLOOM, method="pearson") # 0.13 not sig.
+cor.test(df$Sum.of.TotalArea, df$DOUBLE.BACK, method="pearson") # 0 sig
+cor.test(df$Sum.of.TotalArea, df$JACQUARD, method="pearson") # 0.237 not sig
+cor.test(df$Sum.of.TotalArea, df$HAND.TUFTED, method="pearson") # 0.7 not sig.
+cor.test(df$Sum.of.TotalArea, df$HAND.WOVEN, method="pearson") # 0.09 not sig
+cor.test(df$Sum.of.TotalArea, df$KNOTTED, method="pearson") # 0 sig
+cor.test(df$Sum.of.TotalArea, df$GUN.TUFTED, method="pearson")  # 0 sig
+cor.test(df$Sum.of.TotalArea, df$Powerloom.Jacquard, method="pearson") # 0.85 not sig 
+cor.test(df$Sum.of.TotalArea, df$INDO.TEBETAN, method="pearson") # 0.64 not sig
+
+
+cor.test(df$Sum.of.Amount, df$DURRY, method="pearson") # 0.051 not sig
+cor.test(df$Sum.of.Amount, df$HANDLOOM, method="pearson") # 0.1 not sig
+cor.test(df$Sum.of.Amount, df$DOUBLE.BACK, method="pearson") # 0.19 not sig.
+cor.test(df$Sum.of.Amount, df$JACQUARD, method="pearson") #0.23 not sig.
+cor.test(df$Sum.of.Amount, df$HAND.TUFTED, method="pearson") #0.02 sig. 
+cor.test(df$Sum.of.Amount, df$HAND.WOVEN, method="pearson") #0.15 not sig.
+cor.test(df$Sum.of.Amount, df$KNOTTED, method="pearson") #0.12 not sig.
+cor.test(df$Sum.of.Amount, df$GUN.TUFTED, method="pearson") #0.612 not sig. 
+cor.test(df$Sum.of.Amount, df$Powerloom.Jacquard, method="pearson") #0.08 not sig. 
+cor.test(df$Sum.of.Amount, df$INDO.TEBETAN, method="pearson") #0.86 not sig.
+
+
+cor.test(df$DURRY, df$HANDLOOM, method="pearson") # 0 sig
+cor.test(df$DURRY, df$DOUBLE.BACK, method="pearson") # 0.87 not sig.
+cor.test(df$DURRY, df$JACQUARD, method="pearson") #0.008 sig.
+cor.test(df$DURRY, df$HAND.TUFTED, method="pearson") #0.008 sig. 
+cor.test(df$DURRY, df$HAND.WOVEN, method="pearson") #0.007 sig.
+cor.test(df$DURRY, df$KNOTTED, method="pearson") #0.522 not sig.
+cor.test(df$DURRY, df$GUN.TUFTED, method="pearson") #0.63 not sig. 
+cor.test(df$DURRY, df$Powerloom.Jacquard, method="pearson") #0 sig. 
+cor.test(df$DURRY, df$INDO.TEBETAN, method="pearson") #0.96 not sig.
+
+
+cor.test(df$HANDLOOM, df$DOUBLE.BACK, method="pearson") # 0.39 not sig.
+cor.test(df$HANDLOOM, df$JACQUARD, method="pearson") #0.011  sig.
+cor.test(df$HANDLOOM, df$HAND.TUFTED, method="pearson") #0.053 not sig. 
+cor.test(df$HANDLOOM, df$HAND.WOVEN, method="pearson") #0.34 sig.
+cor.test(df$HANDLOOM, df$KNOTTED, method="pearson") #0.71 not sig.
+cor.test(df$HANDLOOM, df$GUN.TUFTED, method="pearson") #0.117 not sig. 
+cor.test(df$HANDLOOM, df$Powerloom.Jacquard, method="pearson") #0 sig. 
+cor.test(df$HANDLOOM, df$INDO.TEBETAN, method="pearson") #0.91 not sig.
+
+cor.test(df$DOUBLE.BACK, df$JACQUARD, method="pearson") #0.183 not sig.
+cor.test(df$DOUBLE.BACK, df$HAND.TUFTED, method="pearson") #0.798 not sig. 
+cor.test(df$DOUBLE.BACK, df$HAND.WOVEN, method="pearson") #0.01 sig.
+cor.test(df$DOUBLE.BACK, df$KNOTTED, method="pearson") #0  sig.
+cor.test(df$DOUBLE.BACK, df$GUN.TUFTED, method="pearson") #0 not sig. 
+cor.test(df$DOUBLE.BACK, df$Powerloom.Jacquard, method="pearson") #0.73 not sig. 
+cor.test(df$DOUBLE.BACK, df$INDO.TEBETAN, method="pearson") #0.71 not sig.
+
+cor.test(df$JACQUARD, df$HAND.TUFTED, method="pearson") #0.19 not sig. 
+cor.test(df$JACQUARD, df$HAND.WOVEN, method="pearson") #0.16 not sig.
+cor.test(df$JACQUARD, df$KNOTTED, method="pearson") #0.09 not sig.
+cor.test(df$JACQUARD, df$GUN.TUFTED, method="pearson") #0.85 not sig. 
+cor.test(df$JACQUARD, df$Powerloom.Jacquard, method="pearson") #0.007 sig. 
+cor.test(df$JACQUARD, df$INDO.TEBETAN, method="pearson") #0.65 not sig.
+
+cor.test(df$HAND.TUFTED, df$HAND.WOVEN, method="pearson") #0.63 not sig.
+cor.test(df$HAND.TUFTED, df$KNOTTED, method="pearson") #0.88 not sig.
+cor.test(df$HAND.TUFTED, df$GUN.TUFTED, method="pearson") #0.9 not sig. 
+cor.test(df$HAND.TUFTED, df$Powerloom.Jacquard, method="pearson") #0.07 not sig. 
+cor.test(df$HAND.TUFTED, df$INDO.TEBETAN, method="pearson") #0.7 not sig.
+
+cor.test(df$HAND.WOVEN, df$KNOTTED, method="pearson") #0.02 sig.
+cor.test(df$HAND.WOVEN, df$GUN.TUFTED, method="pearson") #0.46 not sig. 
+cor.test(df$HAND.WOVEN, df$Powerloom.Jacquard, method="pearson") #0.38 not sig. 
+cor.test(df$HAND.WOVEN, df$INDO.TEBETAN, method="pearson") #0.79 not sig.
+
+cor.test(df$KNOTTED, df$GUN.TUFTED, method="pearson") #0.09 not sig. 
+cor.test(df$KNOTTED, df$Powerloom.Jacquard, method="pearson") #0.8 not sig. 
+cor.test(df$KNOTTED, df$INDO.TEBETAN, method="pearson") #0.91 not sig.
+
+cor.test(df$GUN.TUFTED, df$Powerloom.Jacquard, method="pearson") #0.81 not sig. 
+cor.test(df$GUN.TUFTED, df$INDO.TEBETAN, method="pearson") #0.12 not sig.
+
+cor.test(df$Powerloom.Jacquard, df$INDO.TEBETAN, method="pearson") #0.83 not sig.
+
+```
+
+*after testing the correlation between all the variables. (no output is present), we could see that all variables somehow have a significant relation with other variables*
+
+
+*only INDO.TEBETAN was shown insignificant for all the correlation tests*
+
+
+
+```{r}
+df = subset(df, select = -c(X_, X) )
+
+df <- df[,-c(13)] ## Removing Indo.Tibetan Column because it is insignificant.
+
+kmodel2<- kmeans(df, centers=2, nstart=100)
+kmodel3<- kmeans(df, centers=3, nstart=100)
+kmodel4<- kmeans(df, centers=4, nstart=100)
+kmodel5<- kmeans(df, centers=5, nstart=100)
+
+
+
+cl2<-fviz_cluster(kmodel2, data=df, geom = "point") + ggtitle("k=2")
+cl3<-fviz_cluster(kmodel3, data=df, geom = "point") + ggtitle("k=3")
+cl4<-fviz_cluster(kmodel4, data=df, geom = "point") + ggtitle("k=4")
+cl5<-fviz_cluster(kmodel5, data=df, geom = "point") + ggtitle("k=5")
+
+
+grid.arrange(cl2,cl3,cl4,cl5, nrow=2)
+
+set.seed(123)
+wssclust <- fviz_nbclust(df, kmeans, method = "wss")+ ggtitle("WSS")
+silhouetteclust <- fviz_nbclust(df, kmeans, method = "silhouette") + ggtitle("SILHOUETTE")
+grid.arrange(wssclust,silhouetteclust, nrow=2)
+
+
+
+df %>%
+  mutate(Cluster = kmodel2$cluster) %>%
+  group_by(Cluster) %>%
+  summarise_all("mean")
+
+```
+
+
+
+### 7) Recommender System
+
+```{r}
+
+REF <- read.csv("C:/Users/ssoman3/Desktop/UIC Spring 2022/Data Mining/Assignment 5/updatedrmarkdown/REF.csv")
+
+df = subset(clustering_data)
+
+Recommender <- function(df, REF, x)
+{
+  
+  df <- df %>% mutate_if(is.numeric, myscale)
+  df <- na.omit(df)
+  D <- dist2list(dist(df))
+  D <- reshape(D, idvar = "col", timevar = "row", direction = "wide")
+  D$col=NULL
+  colnames(D) <- rownames(D) <- data[['Row.Labels']]
+  min = 100 
+  id = 0
+  for (i in 1: nrow(REF))
+  {
+    id = ifelse(min > D[x,REF[i,'Customer']], i, id)
+    min = ifelse(min > D[x,REF[i,'Customer']], D[x,REF[i,'Customer']], min)
+  }
+  Customer = REF[id, 1]
+  REFt = as.data.frame(t(REF))
+  colnames(REFt) <- REF[['Customer']]
+  REFt <- REFt[-c(1, 21), ]
+  VarN <- c('Type', 'Type', 'Type', 'Type', 'Type', 'Type', 'Type', 'Type', 'Shape', 'Shape', 'Shape', 'Color', 'Color', 'Color', 'Color', 'Color', 'Color', 'Color', 'Color')
+  L <- c('Hand.Tufted', 'Double.Woven', 'Durry', 'Double.Back', 'Knotted', 'Jacquared', 'Handloom', 'Other', 'Rectangle', 'Square', 'Round', 'Purple', 'Gray', 'Navy', 'PINK', 'BLUE', 'BLUSH.PINK', 'NEUTRAL', 'TAN')
+  REFt <- cbind(VarN, L, REFt)
+  REFt <- REFt[ , c(1, 2, id+2)]
+  REFt$VarN <- as.factor(REFt$VarN)
+  REFt$L <- as.factor(REFt$L)
+  REFt[, 3] <- as.numeric(REFt[, 3])
+  
+  a = 0
+  b = 0
+  c = 0 
+  Type = " "
+  color = " "
+  shape = " "
+  
+  for (i in 1:nrow(REFt))
+  {
+    Type <- ifelse(REFt[i, 3] > a & REFt[i,1]=="Type", as.character(REFt[i, 2]), Type)
+    a <- ifelse(REFt[i, 3] > a & REFt[i,1]=="Type", REFt[i, 3], a)
+    
+    
+    shape <- ifelse(REFt[i, 3] > b & REFt[i,1]=="Shape", as.character(REFt[i, 2]), shape)
+    b <- ifelse(REFt[i, 3] > b & REFt[i,1]=="Shape", REFt[i, 3], b)
+    
+    color <- ifelse(REFt[i, 3] > c & REFt[i,1]=="Color", as.character(REFt[i, 2]), color)
+    c <- ifelse(REFt[i, 3] > c & REFt[i,1]=="Color", REFt[i, 3], c)
+  }
+  print("Best type for recommendation is")
+  print(Type)
+  print(" ")
+  print("Best color for recommendation is")
+  print(color)
+  print(" ")
+  print("Best shape for recommendation is")
+  print(shape)
+}
+```
+
+
+
+### 8) Final Recommendations to Champo Carpets.
+
