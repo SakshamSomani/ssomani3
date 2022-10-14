@@ -4,7 +4,7 @@
 This repository is a portfolio of projects I've completed for self learning and at University of Illinois Chicago. 
  
 
-## Commulative Projects: Data Analysis with Python & SQL
+## Data Analysis with Python & SQL
 ---
 ### [Clustering: Strategic New Fitness Centers in Los Angeles](https://github.com/SakshamSomani/ssomani3/blob/main/Data_analysis_project/Strategic-New-Fitness-Centers-LA/Data_Analysis_Project.ipynb)
 
