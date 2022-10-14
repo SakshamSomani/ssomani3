@@ -29,3 +29,12 @@ Data Methodology:
   + CLassification Modeling using decision tree, random forest, Multi logistic regression, nueral network
   + Development of Recommender system
   
+  ---
+  ## Machine Learning Algorithms 
+
+### [ML Algorithms]( https://github.com/SakshamSomani/ssomani3/tree/main/machine_learning)
+This folder contains a few Pythons scripts for different Machine Learning Algorithms which I have implemented for my IDS 575: Machine Learning and Statistical Methods Course at University of Illinois.
+
++ [K Nearest Neighbor]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/k_Nearest_Neighborhood.ipynb)
++ [Linear Regression and Gradient Descent]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/Linear_Regression_and_Gradient_Descent.ipynb)
++ [Logistics Regression and Binary Classification]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/Logistic_Regression_and_Binary_Classification.ipynb)
