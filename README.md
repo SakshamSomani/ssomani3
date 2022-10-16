@@ -38,3 +38,28 @@ This folder contains a few Pythons scripts for different Machine Learning Algori
 + [K Nearest Neighbor]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/k_Nearest_Neighborhood.ipynb)
 + [Linear Regression and Gradient Descent]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/Linear_Regression_and_Gradient_Descent.ipynb)
 + [Logistics Regression and Binary Classification]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/Logistic_Regression_and_Binary_Classification.ipynb)
+
+---
+
+ ## Advanced Database Management: School Management System Using SQL 
+
+### [DBMS: Database & Queries](https://github.com/SakshamSomani/ssomani3/tree/main/SQL_School_Management_System)
+This project is a basic understanding of Database Management of a School/University using MySQL server. This sytem was developed in partial fulfilment of the requirements for the Masters of Science in Business Analytics Degree (MSBA) by the collaborative effort of 3 UIC students. 
+
+Databases
+ + Departments          
+ + Buildings            
+ + Subjects             
+ + Teachers             
+ + Advisors
+ + Sections
+ 
+Query Operations 
++ Create
++ Insert
++ Select
++ Group by
++ Where
++ Join (Inner, Outer, Natutral)
++ Order by
+
