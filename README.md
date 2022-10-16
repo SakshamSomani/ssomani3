@@ -49,8 +49,8 @@ This folder contains a few Pythons scripts for different Machine Learning Algori
 ### [DBMS: Database & Queries](https://github.com/SakshamSomani/ssomani3/tree/main/SQL_School_Management_System)
 This project is a basic understanding of Database Management of a School/University using MySQL server. This sytem was developed in partial fulfilment of the requirements for the Masters of Science in Business Analytics Degree (MSBA) by the collaborative effort of 3 UIC students. 
 
-Databases:  Departments | Buildings | Subjects | Teachers | Advisors | Sections
+#### Databases:  Departments | Buildings | Subjects | Teachers | Advisors | Sections
 
-Query Operations: Create | Insert | Select | Group by | Where | Join (Inner, Outer, Natutral) | Order by
+#### Query Operations: Create | Insert | Select | Group by | Where | Join (Inner, Outer, Natutral) | Order by
 
 ![image](https://user-images.githubusercontent.com/75154310/196012329-8a1ef492-981e-4708-8342-7e906bbe8117.png)  
