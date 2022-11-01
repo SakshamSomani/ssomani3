@@ -28,7 +28,7 @@ This was a collaborative project between 3 students at UIC. The main object of t
 Data Methodology:
   + Data Gathering
   + Data Visualization: Exploratory Data ANalysis
-  + Data Cleaning and Pre=processing
+  + Data Cleaning and Pre-processing
   + CLassification Modeling using decision tree, random forest, Multi logistic regression, nueral network
   + Development of Recommender system
   
