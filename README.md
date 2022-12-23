@@ -3,7 +3,24 @@
 ---
 This repository is a portfolio of projects I've completed for self learning and at University of Illinois Chicago. 
  
+## Machine Learning Project
+---
+### [Stellar Classification](https://github.com/SakshamSomani/ssomani3/tree/main/machine_learning/Stellar%20Classification)
 
+In this project, we are classifying celestial bodies observed by the Sloan Digital Sky Survey (SDSS) into Stars, Galaxies, and Quasars. The sky is filled with several celestial bodies that we observe daily. All of them have their own unique characteristics. We analyzed these characteristics to find the most important and differentiating characteristics in order to effectively classify stars, galaxies and quasars.
+
+
+Data Methodology:
+  + Data Gathering ( Sloan Digital Sky Survey from Kaggle) 
+  + Exploratory Data Analysis
+  + Univariate and Multivariate Analysis
+  + Data Preparation
+  + Machine Learning Models 
+    * KNN | Logistic Regression | SGD CLassifier | Support Vector Machine | Decision Tree Classifier | Random Forest | Gradient Boosting Classifier | Extremely Randomized Trees
+  + Cross Validation
+  + Hyperparameter Tuning
+  
+  
 ## Data Analysis with Python & SQL
 ---
 ### [Clustering: Strategic New Fitness Centers in Los Angeles](https://github.com/SakshamSomani/ssomani3/blob/main/Data_analysis_project/Strategic-New-Fitness-Centers-LA/Data_Analysis_Project.ipynb)
