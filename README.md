@@ -72,6 +72,8 @@ This folder contains a few Pythons scripts for different Machine Learning Algori
 + [K Nearest Neighbor]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/k_Nearest_Neighborhood.ipynb)
 + [Linear Regression and Gradient Descent]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/Linear_Regression_and_Gradient_Descent.ipynb)
 + [Logistics Regression and Binary Classification]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/Logistic_Regression_and_Binary_Classification.ipynb)
++ [Support Vector Machine]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/Support%20Vector%20Machine.ipynb)
++ [KMeans and GMM]( https://github.com/SakshamSomani/ssomani3/blob/main/machine_learning/KMmeans%20And%20GMM.ipynb)
 
 ---
 
