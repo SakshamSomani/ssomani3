@@ -38,7 +38,7 @@ Methodology:
   
   
 ## Data Analysis with Python & SQL
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) 
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) [MicrosoftSQLServer](https://img.shields.io/badge/Microsoft%20SQL%20Sever-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white) ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
 ---
 ### [Clustering: Strategic New Fitness Centers in Los Angeles](https://github.com/SakshamSomani/ssomani3/blob/main/Data_analysis_project/Strategic-New-Fitness-Centers-LA/Data_Analysis_Project.ipynb)
 
@@ -83,6 +83,8 @@ This folder contains a few Pythons scripts for different Machine Learning Algori
 ---
 
  ## Advanced Database Management: School Management System Using SQL 
+ 
+ [MicrosoftSQLServer](https://img.shields.io/badge/Microsoft%20SQL%20Sever-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white) ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
 
 ### [DBMS: Database & Queries](https://github.com/SakshamSomani/ssomani3/tree/main/SQL_School_Management_System)
 This project is a basic understanding of Database Management of a School/University using MySQL server. This sytem was developed in partial fulfilment of the requirements for the Masters of Science in Business Analytics Degree (MSBA) by the collaborative effort of 3 UIC students. 
