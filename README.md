@@ -4,6 +4,7 @@
 This repository is a portfolio of projects I've completed for self learning and at University of Illinois Chicago. 
 
 ## Big Data Analytics
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![R](https://img.shields.io/badge/r-%23276DC3.svg?style=for-the-badge&logo=r&logoColor=white)
 ---
 ### [Movie Recommender System](https://github.com/SakshamSomani/ssomani3/tree/main/Data_analysis_project/Movie%20Recommender%20System)
 
