@@ -4,7 +4,7 @@
 This repository is a portfolio of projects I've completed for self learning and at University of Illinois Chicago. 
 
 ## Big Data Analytics
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) 
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white) ![Keras](https://img.shields.io/badge/Keras-%23D00000.svg?style=for-the-badge&logo=Keras&logoColor=white) ![Pandas](https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-%233F4F75.svg?style=for-the-badge&logo=plotly&logoColor=white)
 ---
 ### [Movie Recommender System](https://github.com/SakshamSomani/ssomani3/tree/main/Data_analysis_project/Movie%20Recommender%20System)
 
@@ -19,7 +19,7 @@ Methodology:
     
 
 ## Machine Learning Project
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) 
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white) ![Keras](https://img.shields.io/badge/Keras-%23D00000.svg?style=for-the-badge&logo=Keras&logoColor=white) ![Pandas](https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-%233F4F75.svg?style=for-the-badge&logo=plotly&logoColor=white)
 ---
 ### [Stellar Classification](https://github.com/SakshamSomani/ssomani3/tree/main/machine_learning/Stellar%20Classification)
 
@@ -84,7 +84,7 @@ This folder contains a few Pythons scripts for different Machine Learning Algori
 
  ## Advanced Database Management: School Management System Using SQL 
  
- [MicrosoftSQLServer](https://img.shields.io/badge/Microsoft%20SQL%20Sever-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white) ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
+ [MicrosoftSQLServer](https://img.shields.io/badge/Microsoft%20SQL%20Sever-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white)  ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
 
 ### [DBMS: Database & Queries](https://github.com/SakshamSomani/ssomani3/tree/main/SQL_School_Management_System)
 This project is a basic understanding of Database Management of a School/University using MySQL server. This sytem was developed in partial fulfilment of the requirements for the Masters of Science in Business Analytics Degree (MSBA) by the collaborative effort of 3 UIC students. 
