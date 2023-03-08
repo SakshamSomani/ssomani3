@@ -4,7 +4,7 @@
 This repository is a portfolio of projects I've completed for self learning and at University of Illinois Chicago. 
 
 ## Big Data Analytics
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![R](https://img.shields.io/badge/r-%23276DC3.svg?style=for-the-badge&logo=r&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) 
 ---
 ### [Movie Recommender System](https://github.com/SakshamSomani/ssomani3/tree/main/Data_analysis_project/Movie%20Recommender%20System)
 
@@ -54,6 +54,8 @@ Methodology:
   
 ---  
   ## DATA Mining Project: Data Mining with R 
+  
+  ![R](https://img.shields.io/badge/r-%23276DC3.svg?style=for-the-badge&logo=r&logoColor=white)
 
 ### [Recommender System: Champo Carpet](https://github.com/SakshamSomani/ssomani3/blob/main/Data%20Mining%20Using%20R/HW5_Sol.Rmd)
 This was a collaborative project between 3 students at UIC. The main object of this project wat to improve the sale of Champo Carpets using Machine Learning Algorithms and provide a recommender system. Classification algorithms like decision tree, random forest, Multi logistic regression, neural network were successfully impletmented using R.
