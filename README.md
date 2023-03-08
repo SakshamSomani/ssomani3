@@ -19,6 +19,7 @@ Methodology:
     
 
 ## Machine Learning Project
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) 
 ---
 ### [Stellar Classification](https://github.com/SakshamSomani/ssomani3/tree/main/machine_learning/Stellar%20Classification)
 
@@ -37,6 +38,7 @@ Methodology:
   
   
 ## Data Analysis with Python & SQL
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) 
 ---
 ### [Clustering: Strategic New Fitness Centers in Los Angeles](https://github.com/SakshamSomani/ssomani3/blob/main/Data_analysis_project/Strategic-New-Fitness-Centers-LA/Data_Analysis_Project.ipynb)
 
